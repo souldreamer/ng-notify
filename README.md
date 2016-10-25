@@ -20,6 +20,10 @@ Open to suggestion for other notifications & types
 - [ ] Wrap all other `angular-cli` commands and add specific notifications
 for them
 - [ ] Configuration file to turn on/off the different notifications
+- [ ] Add images & sounds to notifications
 
 ## Installation
 For now, `tsc && npm install -g && npm link`
+
+#### Usage
+Run `ngn-serve [other ng params]` in your angular-cli project folder
