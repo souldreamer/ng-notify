@@ -14,5 +14,6 @@
   "bin": {
     "ngn-serve": "app.js"
   },
-  "preferGlobal": true
+  "preferGlobal": true,
+  "keywords": ["Angular 2", "angular-cli", "notifications", "angular-cli notifications"]
 }
