@@ -23,7 +23,10 @@ for them
 - [ ] Add images & sounds to notifications
 
 ## Installation
-For now, `tsc && npm install -g && npm link`
+For now:
+- clone the project
+- run `npm install` (or `yarn install`)
+- run `tsc && npm install -g && npm link`
 
 #### Usage
 Run `ngn-serve [other ng params]` in your angular-cli project folder

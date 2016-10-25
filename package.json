@@ -8,6 +8,8 @@
   "dependencies": {
     "@types/jasmine": "^2.5.35",
     "@types/node": "^6.0.45",
+    "@types/node-notifier": "^0.0.28",
+    "@types/opn": "^3.0.28",
     "node-notifier": "^4.6.1",
     "opn": "^4.0.2"
   },
@@ -15,5 +17,10 @@
     "ngn-serve": "app.js"
   },
   "preferGlobal": true,
-  "keywords": ["Angular 2", "angular-cli", "notifications", "angular-cli notifications"]
+  "keywords": [
+    "Angular 2",
+    "angular-cli",
+    "notifications",
+    "angular-cli notifications"
+  ]
 }
