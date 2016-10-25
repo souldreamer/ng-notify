@@ -1,0 +1,6 @@
+{
+  "globalDependencies": {
+    "node-notifier": "registry:dt/node-notifier#0.0.0+20160316155526",
+    "opn": "registry:dt/opn#3.0.2+20160316155526"
+  }
+}
