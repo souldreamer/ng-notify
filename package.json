@@ -1,6 +1,6 @@
 {
   "name": "ng-toast-serve",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Run `ng serve` but hook into its output to show toast notifications for events",
   "main": "app.js",
   "author": "Ionut Costica",
