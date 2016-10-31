@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+import * as fs from 'fs';
+import WritableStream = NodeJS.WritableStream;
 import { spawn } from 'child_process';
 import { Watcher } from './shared/watchers';
-import WritableStream = NodeJS.WritableStream;
 import { findConfigurationFile } from './configuration/finder';
-import { parseConfiguration, Configuration } from './configuration/parser';
-import * as fs from 'fs';
+import { parseConfiguration } from './configuration/parser';
+import { Configuration } from './configuration/interfaces';
 
 const configurationFile = findConfigurationFile('ng-notify.json');
 const configurationFileContents = fs.readFileSync(configurationFile).toString();

@@ -1,51 +1,10 @@
+import * as deepAssign from 'deep-assign';
 import { Watcher, AugmentedNotificationCallback } from '../shared/watchers';
 import { RegexWatcher } from '../shared/regex.watcher';
-import * as deepAssign from 'deep-assign';
-
-// TODO: extend this with all the Notification parameters
-// NOTE: there can also be other parameters, not just these
-//       (especially watcher-type specific parameters)
-interface WatcherParameters {
-	title?: string;
-	message?: string;
-	onClick?: string;
-	onTimeout?: string;
-	variables?: WatcherConfigurationVariables;
-	[otherParameterName: string]: any;
-}
-
-interface CliWatchers {
-	stderr?: (string | WatcherConfiguration)[];
-	stdout?: (string | WatcherConfiguration)[];
-}
-
-interface CliCommand {
-	cliParameters: string[];
-	watchers: CliWatchers;
-}
-
-interface WatcherConfigurationVariables {
-	[variable: string]: string;
-}
-
-interface WatcherConfiguration {
-	name: string;
-	type: string;
-	parameters: WatcherParameters
-}
-
-export interface Configuration {
-	cli: string;
-	cliCommands: CliCommand[];
-	watchers?: WatcherConfiguration[];
-}
-
-export interface StreamWatchers {
-	stderr: Watcher[];
-	stdout: Watcher[];
-}
-
-type WatcherConfigurationMap = Map<string, WatcherConfiguration>;
+import {
+	WatcherConfiguration, WatcherParameters, WatcherConfigurationMap, Configuration,
+	StreamWatchers
+} from './interfaces';
 
 function parametersMatch(parameters: string[], argv: string[]): boolean {
 	for (let parameterIndex = 0; parameterIndex < parameters.length; parameterIndex++) {
