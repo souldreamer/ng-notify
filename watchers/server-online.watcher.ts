@@ -1,4 +1,4 @@
-import { RegexWatcher } from '../shared/regex-watcher';
+import { RegexWatcher } from '../shared/regex.watcher';
 import * as opn from 'opn';
 
 export class ServerOnlineWatcher extends RegexWatcher {

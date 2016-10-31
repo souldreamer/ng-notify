@@ -6,10 +6,14 @@
   "author": "Ionut Costica",
   "license": "MIT",
   "dependencies": {
+    "@types/glob": "^5.0.30",
     "@types/jasmine": "^2.5.35",
     "@types/node": "^6.0.45",
     "@types/node-notifier": "^0.0.28",
     "@types/opn": "^3.0.28",
+    "clone": "^2.0.0",
+    "deep-assign": "^2.0.0",
+    "glob": "^7.1.1",
     "node-notifier": "^4.6.1",
     "opn": "^4.0.2"
   },

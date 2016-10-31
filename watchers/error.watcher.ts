@@ -1,12 +1,12 @@
-import { RegexWatcher } from '../shared/regex-watcher';
+import { RegexWatcher } from '../shared/regex.watcher';
 
 export class ErrorWatcher extends RegexWatcher {
 	constructor() {
 		super(
-			/.*\bERROR\b.*/mi,
+			/.*\d(ERROR\b.*)/m,
 			{
 				title: 'ng error',
-				message: '$0',
+				message: '$1',
 				wait: false
 			}
 		);

@@ -1,7 +1,7 @@
 import { NodeNotifier, Notification, notify } from 'node-notifier';
 
 export interface AugmentedNotificationCallback {
-	(err: any, response: any, additionalInformation?: any): any;
+	(err: any, response: any, additionalInformation: any): any;
 }
 
 export abstract class Watcher {
