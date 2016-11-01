@@ -1,5 +1,5 @@
 {
-  "name": "ng-toast-serve",
+  "name": "noti-cli",
   "version": "0.1.0",
   "description": "Run `ng serve` but hook into its output to show toast notifications for events",
   "main": "app.js",
