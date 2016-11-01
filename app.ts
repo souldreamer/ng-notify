@@ -7,10 +7,15 @@ import { findConfigurationFile } from './configuration/finder';
 import { parseConfiguration } from './configuration/parser';
 import { Configuration } from './configuration/interfaces';
 
-const configurationFile = findConfigurationFile('ng-notify.json');
+const cliParameterMatch = process.argv[2].match(/^cli:(.*)$/i);
+const cliName = cliParameterMatch == null ? '' : cliParameterMatch[1];
+const configurationFilename = cliParameterMatch == null ? 'ng-notify.json' : `ng-notify.${cliName}.json`;
+const cliArguments = process.argv.slice(cliParameterMatch == null ? 2 : 3);
+
+const configurationFile = findConfigurationFile(configurationFilename);
 const configurationFileContents = fs.readFileSync(configurationFile).toString();
 const configuration = <Configuration>JSON.parse(configurationFileContents);
-const {stderr: stderrWatchers, stdout: stdoutWatchers} = parseConfiguration(configuration);
+const {stderr: stderrWatchers, stdout: stdoutWatchers} = parseConfiguration(configuration, cliArguments);
 
 function dealWithBlock(block: Buffer | string, watchers: Watcher[], stream: WritableStream) {
 	if (stream != null) stream.write(block);
@@ -19,7 +24,7 @@ function dealWithBlock(block: Buffer | string, watchers: Watcher[], stream: Writ
 	watchers.forEach(watcher => watcher.execute(text));
 }
 
-let ngServe = spawn(configuration.cli, [...process.argv.slice(1)], {shell: true});
+let ngServe = spawn(configuration.cli, [...cliArguments], {shell: true});
 
 ngServe.on('error', (err: any) => {
 	console.error(err);

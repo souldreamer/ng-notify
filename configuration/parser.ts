@@ -63,8 +63,7 @@ function getWatcherConfigurationMap(configuration: Configuration): WatcherConfig
 	return watcherConfigurationMap;
 }
 
-export function parseConfiguration(configuration: Configuration): StreamWatchers {
-	let argv = process.argv.slice(2);
+export function parseConfiguration(configuration: Configuration, argv: string[]): StreamWatchers {
 	let stderrWatchers: Watcher[] = [];
 	let stdoutWatchers: Watcher[] = [];
 	let globalWatchers: WatcherConfigurationMap = getWatcherConfigurationMap(configuration);
