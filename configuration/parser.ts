@@ -5,6 +5,7 @@ import {
 	WatcherConfiguration, WatcherParameters, WatcherConfigurationMap, Configuration,
 	StreamWatchers
 } from './interfaces';
+import { EndStreamWatcher } from '../shared/end-stream.watcher';
 
 function parametersMatch(parameters: string[], argv: string[]): boolean {
 	for (let parameterIndex = 0; parameterIndex < parameters.length; parameterIndex++) {
@@ -15,10 +16,12 @@ function parametersMatch(parameters: string[], argv: string[]): boolean {
 	return true;
 }
 
+// TODO: actually implement this
 function createCallbackFunction(functionString: string): AugmentedNotificationCallback {
 	return () => { console.log(functionString); };
 }
 
+// TODO: add ending watcher that watches for stream end
 function createWatcher(
 	configuration: WatcherConfiguration,
     parameters?: WatcherParameters
@@ -34,6 +37,11 @@ function createWatcher(
 				createCallbackFunction(actualParameters.onClick),
 				createCallbackFunction(actualParameters.onTimeout)
 			);
+		case 'end-stream':
+			return new EndStreamWatcher(
+				createCallbackFunction(actualParameters.onClick),
+				createCallbackFunction(actualParameters.onTimeout)
+			)
 		default:
 			throw new Error(`Unrecognized base watcher type (${configuration.type}) for watcher with name '${configuration.name}'!`);
 	}
