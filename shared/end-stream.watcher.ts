@@ -12,7 +12,8 @@ export class EndStreamWatcher extends NotifyingWatcher {
 		super(parameters, onClick, onTimeout);
 	}
 	
-	execute(text: string, inputVariables?: WatcherConfigurationVariables): WatcherConfigurationVariables {
-		this.showNotification(this.parameters);
+	execute(text: string, variables: WatcherConfigurationVariables): void {
+		this.setSpecialVariables(variables);
+		this.showNotification(this.parameters, variables);
 	}
 }
