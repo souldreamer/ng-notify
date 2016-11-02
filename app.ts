@@ -46,7 +46,6 @@ export function main(argv: string[]) {
 	});
 	
 	ngServe.on('close', () => {
-		console.warn('exited');
 		process.exit(0);
 	});
 	

@@ -20,6 +20,8 @@ function parametersMatch(parameters: string[], argv: string[]): boolean {
 }
 
 function createCallbackFunction(functionString: string): NotificationCallback {
+	if (functionString == null) return () => {};
+	
 	if (/^\s*open\s+/i.test(functionString)) {
 		return (variables: any) => {
 			let openWhat = functionString.match(/^\s*open\s+(.*)$/i)[1];
