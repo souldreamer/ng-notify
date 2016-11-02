@@ -1,10 +1,11 @@
 import { NodeNotifier, Notification, notify } from 'node-notifier';
-import { WatcherParameters, WatcherConfigurationVariables } from '../configuration/interfaces';
+import { WatcherParameters, WatcherConfigurationVariables, WatcherListeners } from '../configuration/interfaces';
 import * as deepAssign from 'deep-assign';
 import { replaceVariables } from './pipes';
+import { VariableGenerators } from './variables';
 
-export interface AugmentedNotificationCallback {
-	(err: any, response: any, variables: WatcherConfigurationVariables): any;
+export interface NotificationCallback {
+	(variables: WatcherConfigurationVariables): any;
 }
 
 interface StringIndexedObject {
@@ -12,7 +13,14 @@ interface StringIndexedObject {
 }
 
 export abstract class Watcher {
-	constructor(protected parameters: WatcherParameters) {}
+	constructor(
+		protected parameters: WatcherParameters,
+	    protected listeners: WatcherListeners
+	) {
+		if (this.listeners.onExecute == null) this.listeners.onExecute = () => {};
+		if (this.listeners.onTimeout == null) this.listeners.onTimeout = () => {};
+		if (this.listeners.onClick == null) this.listeners.onClick = () => {};
+	}
 	
 	execute(text: string, variables: WatcherConfigurationVariables): void {}
 	
@@ -22,12 +30,10 @@ export abstract class Watcher {
 	
 	protected setSpecialVariables(variables: WatcherConfigurationVariables) {
 		for (let variable in this.parameters.variables) {
-			switch (this.parameters.variables[variable].trim()) {
-				case 'Date.now':
-					variables[variable] = (new Date()).toISOString();
-					break;
-				default:
-					break;
+			let parameterValue = this.parameters.variables[variable].trim();
+			let generator = VariableGenerators[parameterValue];
+			if (generator != null) {
+				variables[variable] = generator();
 			}
 		}
 	}
@@ -36,10 +42,9 @@ export abstract class Watcher {
 export abstract class NotifyingWatcher extends Watcher {
 	constructor(
 		parameters: WatcherParameters,
-		protected onClick: AugmentedNotificationCallback = () => {},
-		protected onTimeout: AugmentedNotificationCallback = () => {}
+		listeners: WatcherListeners = {}
 	) {
-		super(parameters);
+		super(parameters, listeners);
 	}
 	
 	showNotification(
@@ -48,30 +53,29 @@ export abstract class NotifyingWatcher extends Watcher {
 	): NodeNotifier {
 		const notificationStyle: Notification = notification || <any>this.parameters;
 		this.replaceNotificationVariables(notificationStyle, variables);
+		notificationStyle.wait = true;
 		
-		const notifier = notify(notificationStyle, (err: any, res: string) => {
+		return notify(notificationStyle, (err: any, res: string) => {
 			switch (res) {
 				case 'activate':
-					this.onClick(err, res, variables);
+					this.listeners.onClick(variables);
 					break;
 				case 'timeout':
-					this.onTimeout(err, res, variables);
+					this.listeners.onTimeout(variables);
 					break;
 			}
 		});
-		
-		return notifier;
 	}
 	
 	protected replaceNotificationVariables(
 		notification: Notification,
 		variables: WatcherConfigurationVariables
 	): void {
-		let notif = <StringIndexedObject>notification;
-		for (let notificationProperty in notif) {
-			if (typeof notif[notificationProperty] !== 'string') continue;
-			notif[notificationProperty] =
-				replaceVariables(notif[notificationProperty], variables);
+		let notificationObject = <StringIndexedObject>notification;
+		for (let notificationProperty in notificationObject) {
+			if (typeof notificationObject[notificationProperty] !== 'string') continue;
+			notificationObject[notificationProperty] =
+				replaceVariables(notificationObject[notificationProperty], variables);
 		}
 	}
 }

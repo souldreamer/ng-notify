@@ -1,14 +1,15 @@
-import { AugmentedNotificationCallback, NotifyingWatcher } from './watchers';
-import { WatcherConfigurationVariables, WatcherParameters } from '../configuration/interfaces';
+import { NotifyingWatcher } from './watchers';
+import {
+	WatcherConfigurationVariables, WatcherParameters, WatcherListeners
+} from '../configuration/interfaces';
 
 export class RegexWatcher extends NotifyingWatcher {
 	constructor(
 		protected regex: RegExp,
 		parameters: WatcherParameters,
-	    onClick: AugmentedNotificationCallback = () => {},
-	    onTimeout: AugmentedNotificationCallback = () => {}
+	    listeners: WatcherListeners = {}
 	) {
-		super(parameters, onClick, onTimeout);
+		super(parameters, listeners);
 		console.log('Creating regex watcher', regex, parameters);
 	}
 	
@@ -19,12 +20,13 @@ export class RegexWatcher extends NotifyingWatcher {
 		this.setSpecialVariables(variables);
 		this.setMatchVariables(variables, matches);
 		this.showNotification(this.replaceStyle(matches), variables);
+		this.listeners.onExecute(variables);
 	}
 	
 	private replaceStyle(matches: RegExpMatchArray): any {
 		let computedStyle: any = Object.assign({}, this.parameters);
 		for (let property in computedStyle) {
-			if (typeof computedStyle[property] === 'string') {
+			if (computedStyle.hasOwnProperty(property) && typeof computedStyle[property] === 'string') {
 				computedStyle[property] = (<string>computedStyle[property]).replace(/\$(\d+)/gi, (match, num) => matches[+num]);
 			}
 		}

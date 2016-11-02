@@ -1,9 +1,9 @@
 import * as deepAssign from 'deep-assign';
-import { Watcher, AugmentedNotificationCallback } from '../shared/watchers';
+import { Watcher, NotificationCallback } from '../shared/watchers';
 import { RegexWatcher } from '../shared/regex.watcher';
 import {
 	WatcherConfiguration, WatcherParameters, WatcherConfigurationMap, Configuration,
-	StreamWatchers
+	StreamWatchers, WatcherListeners
 } from './interfaces';
 import { EndStreamWatcher } from '../shared/end-stream.watcher';
 import * as opn from 'opn';
@@ -19,29 +19,37 @@ function parametersMatch(parameters: string[], argv: string[]): boolean {
 	return true;
 }
 
-function createCallbackFunction(functionString: string): AugmentedNotificationCallback {
+function createCallbackFunction(functionString: string): NotificationCallback {
 	if (/^\s*open\s+/i.test(functionString)) {
-		return (err: any, res: any, variables: any) => {
+		return (variables: any) => {
 			let openWhat = functionString.match(/^\s*open\s+(.*)$/i)[1];
 			opn(replaceVariables(openWhat, variables));
 		}
 	}
 	if (/^\s*run\s+/i.test(functionString)) {
-		return (err: any, res: any, variables: any) => {
+		return (variables: any) => {
 			let runWhat = functionString.match(/^\s*run\s+(.*)$/i)[1];
 			let runCommand = replaceVariables(runWhat, variables).split(/\s+/);
 			spawn(runCommand[0], [...runCommand.slice(1)], {shell: true});
 		}
 	}
 	if (/^\s*(debug\s+\S|debug\s*)/i.test(functionString)) {
-		return (err: any, res: any, variables: any) => {
+		return (variables: any) => {
 			let debugMatch = functionString.match(/^\s*debug\s+(.*)$/i);
-			if (debugMatch == null) return console.log(err, res, variables);
+			if (debugMatch == null) return console.log(variables);
 			let debugString = replaceVariables(debugMatch[1], variables);
 			console.info(debugString);
 		}
 	}
 	return () => { console.warn(`UNRECOGNIZED COMMAND: ${functionString}`); };
+}
+
+function createListeners(parameters: WatcherParameters): WatcherListeners {
+	return {
+		onExecute: createCallbackFunction(parameters.onExecute),
+		onTimeout: createCallbackFunction(parameters.onTimeout),
+		onClick: createCallbackFunction(parameters.onClick)
+	};
 }
 
 function createWatcher(
@@ -57,14 +65,12 @@ function createWatcher(
 			return new RegexWatcher(
 				regex,
 				actualParameters,
-				createCallbackFunction(actualParameters.onClick),
-				createCallbackFunction(actualParameters.onTimeout)
+				createListeners(actualParameters)
 			);
 		case 'end-stream':
 			return new EndStreamWatcher(
 				actualParameters,
-				createCallbackFunction(actualParameters.onClick),
-				createCallbackFunction(actualParameters.onTimeout)
+				createListeners(actualParameters)
 			)
 		default:
 			throw new Error(`Unrecognized base watcher type (${configuration.type}) for watcher with name '${configuration.name}'!`);

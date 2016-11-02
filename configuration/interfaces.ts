@@ -1,15 +1,21 @@
-import { Watcher } from '../shared/watchers';
+import { Watcher, NotificationCallback } from '../shared/watchers';
 
-// TODO: extend this with all the Notification parameters
-// NOTE: there can also be other parameters, not just these
-//       (especially watcher-type specific parameters)
 export interface WatcherParameters {
 	title?: string;
 	message?: string;
+	icon?: string;
+	sound?: boolean;
+	onExecute?: string;
 	onClick?: string;
 	onTimeout?: string;
 	variables?: WatcherConfigurationVariables;
 	[otherParameterName: string]: any;
+}
+
+export interface WatcherListeners {
+	onExecute?: NotificationCallback;
+	onClick?: NotificationCallback;
+	onTimeout?: NotificationCallback;
 }
 
 export interface CliWatchers {

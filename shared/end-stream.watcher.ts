@@ -1,19 +1,21 @@
-import { NotifyingWatcher, AugmentedNotificationCallback } from './watchers';
-import { WatcherParameters, WatcherConfigurationVariables } from '../configuration/interfaces';
+import { NotifyingWatcher } from './watchers';
+import {
+	WatcherParameters, WatcherConfigurationVariables, WatcherListeners
+} from '../configuration/interfaces';
 
 export class EndStreamWatcher extends NotifyingWatcher {
 	endStream: true;
 	
 	constructor(
 		parameters: WatcherParameters,
-		onClick: AugmentedNotificationCallback = () => {},
-		onTimeout: AugmentedNotificationCallback = () => {}
+	    listeners: WatcherListeners = {}
 	) {
-		super(parameters, onClick, onTimeout);
+		super(parameters, listeners);
 	}
 	
 	execute(text: string, variables: WatcherConfigurationVariables): void {
 		this.setSpecialVariables(variables);
 		this.showNotification(this.parameters, variables);
+		this.listeners.onExecute(variables);
 	}
 }
