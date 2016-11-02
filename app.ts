@@ -39,7 +39,9 @@ export function main(argv: string[]) {
 		return watchers.filter(watcher => (<EndStreamWatcher>watcher).endStream);
 	}
 	
-	let ngServe = spawn(configuration.cli, [...cliArguments], { shell: true });
+	let ngServe = configuration.cli == null || configuration.cli.trim().length === 0 ?
+	              spawn(cliArguments[0], [...cliArguments.slice(1)]) :
+	              spawn(configuration.cli, [...cliArguments], { shell: true });
 	
 	ngServe.on('error', (err: any) => {
 		console.error(err);
