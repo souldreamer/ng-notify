@@ -1,0 +1,85 @@
+{
+	"cli": "noti-tester",
+	"cliCommands": [
+		{
+			"cliParameters": [],
+			"watchers": {
+				"stdout": [
+					"end"
+				],
+				"stderr": [
+					{
+						"name": "all",
+						"parameters": {
+							"title": "There was an error"
+						}
+					}
+				]
+			}
+		}
+	],
+	"watchers": [
+		{
+			"name": "all",
+			"type": "regex",
+			"parameters": {
+				"regex": "/.*/",
+				"message": "$0"
+			}
+		},
+		{
+			"name": "server-online",
+			"type": "regex",
+			"parameters": {
+				"regex": "/\\*\\*.*(http:\\/\\/.*:\\d+).*\\*\\*/i",
+				"title": "`ng serve` started",
+				"message": "Server started at $1",
+				"onClick": "open $1",
+				"variables": {
+					"serve-address": "$1"
+				}
+			}
+		},
+		{
+			"name": "error",
+			"type": "regex",
+			"parameters": {
+				"regex": "/.*\\bERROR\\b(.*)/m",
+				"title": "Compile error",
+				"message": "$1"
+			}
+		},
+		{
+			"name": "rebuild-start",
+			"type": "regex",
+			"parameters": {
+				"regex": "/^webpack: bundle is now INVALID\\.$/",
+				"title": "Rebuild started",
+				"variables": {
+					"rebuild": "Date.now"
+				}
+			}
+		},
+		{
+			"name": "rebuild-end",
+			"type": "regex",
+			"parameters": {
+				"regex": "/^webpack: bundle is now VALID\\.$/",
+				"title": "Rebuild finished",
+				"message": "Rebuild took ${rebuild|time-difference}"
+			}
+		},
+		{
+			"name": "end",
+			"type": "end-stream",
+			"parameters": {
+				"title": "test ended",
+				"message": "test ended at ${end-date|date:hh.mm.ss}",
+				"onTimeout": "debug",
+				"variables": {
+					"end-date": "Date.now"
+				}
+			}
+		}
+	]
+}

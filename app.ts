@@ -8,41 +8,55 @@ import { parseConfiguration } from './configuration/parser';
 import { Configuration } from './configuration/interfaces';
 import { EndStreamWatcher } from './shared/end-stream.watcher';
 
-const cliParameterMatch = process.argv[2].match(/^cli:(.*)$/i);
-const cliName = cliParameterMatch == null ? '' : cliParameterMatch[1];
-const configurationFilename = cliParameterMatch == null ? 'ng-notify.json' : `ng-notify.${cliName}.json`;
-const cliArguments = process.argv.slice(cliParameterMatch == null ? 2 : 3);
-
-const configurationFile = findConfigurationFile(configurationFilename);
-const configurationFileContents = fs.readFileSync(configurationFile).toString();
-const configuration = <Configuration>JSON.parse(configurationFileContents);
-const {stderr: stderrWatchers, stdout: stdoutWatchers} = parseConfiguration(configuration, cliArguments);
-
-function dealWithBlock(block: Buffer | string, watchers: Watcher[], stream: WritableStream) {
-	if (stream != null) stream.write(block);
+export function main(argv: string[]) {
+	const cliParameterMatch = argv[2].match(/^cli:(.*)$/i);
+	const cliName = cliParameterMatch == null ? '' : cliParameterMatch[1];
+	const configurationFilename = cliParameterMatch == null ? 'noti-cli.json' : `noti-cli.${cliName}.json`;
+	const cliArguments = argv.slice(cliParameterMatch == null ? 2 : 3);
 	
-	let text = block.toString();
-	watchers.forEach(watcher => watcher.execute(text));
+	const configurationFile = findConfigurationFile(configurationFilename);
+	const configurationFileContents = fs.readFileSync(configurationFile).toString();
+	const configuration = <Configuration>JSON.parse(configurationFileContents);
+	const { stderr: stderrWatchers, stdout: stdoutWatchers } = parseConfiguration(configuration, cliArguments);
+	
+	console.log(stderrWatchers);
+	console.log(stdoutWatchers);
+	
+	let watcherVariables = {};
+	
+	function dealWithBlock(block: Buffer | string, watchers: Watcher[], stream?: WritableStream) {
+		if (stream != null && block != null) stream.write(block);
+		
+		let text = block == null ? '' : block.toString();
+		watchers.forEach(watcher => watcher.execute(text, watcherVariables));
+	}
+	
+	function filterOutEndStreamWatchers(watchers: Watcher[]): Watcher[] {
+		return watchers.filter(watcher => (<EndStreamWatcher>watcher).endStream !== true);
+	}
+	
+	function filterOnlyEndStreamWatchers(watchers: Watcher[]): Watcher[] {
+		return watchers.filter(watcher => (<EndStreamWatcher>watcher).endStream);
+	}
+	
+	let ngServe = spawn(configuration.cli, [...cliArguments], { shell: true });
+	
+	ngServe.on('error', (err: any) => {
+		console.error(err);
+	});
+	
+	ngServe.on('close', () => {
+		console.warn('exited');
+		process.exit(0);
+	});
+	
+	ngServe.stdout.on('data', block => dealWithBlock(block, filterOutEndStreamWatchers(stdoutWatchers), process.stdout));
+	ngServe.stdout.on('end', block => dealWithBlock(block, filterOnlyEndStreamWatchers(stdoutWatchers)));
+	ngServe.stderr.on('data', block => dealWithBlock(block, filterOutEndStreamWatchers(stderrWatchers), process.stderr));
+	ngServe.stderr.on('end', block => dealWithBlock(block, filterOnlyEndStreamWatchers(stderrWatchers)));
+	process.stdin.on('data', (data: Buffer) => ngServe.stdin.write(data));
+	
+	console.log(`Loading configuration file from: ${configurationFile}`);
 }
 
-function filterOutEndStreamWatchers(watchers: Watcher[]): Watcher[] {
-	return watchers.filter(watcher => (<EndStreamWatcher>watcher).endStream !== true);
-}
-
-function filterOnlyEndStreamWatchers(watchers: Watcher[]): Watcher[] {
-	return watchers.filter(watcher => (<EndStreamWatcher>watcher).endStream);
-}
-
-let ngServe = spawn(configuration.cli, [...cliArguments], {shell: true});
-
-ngServe.on('error', (err: any) => {
-	console.error(err);
-});
-
-ngServe.stdout.on('data', block => dealWithBlock(block, filterOutEndStreamWatchers(stdoutWatchers), process.stdout));
-ngServe.stdout.on('end', block => dealWithBlock(block, filterOnlyEndStreamWatchers(stdoutWatchers), process.stdout));
-ngServe.stderr.on('data', block => dealWithBlock(block, filterOutEndStreamWatchers(stderrWatchers), process.stderr));
-ngServe.stderr.on('end', block => dealWithBlock(block, filterOnlyEndStreamWatchers(stderrWatchers), process.stderr));
-process.stdin.on('data', (data: Buffer) => ngServe.stdin.write(data));
-
-console.log(`Loading configuration file from: ${findConfigurationFile('ng-notify.json')}`);
+main(process.argv);

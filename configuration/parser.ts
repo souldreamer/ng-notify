@@ -6,6 +6,9 @@ import {
 	StreamWatchers
 } from './interfaces';
 import { EndStreamWatcher } from '../shared/end-stream.watcher';
+import * as opn from 'opn';
+import { replaceVariables } from '../shared/pipes';
+import { spawn } from 'child_process';
 
 function parametersMatch(parameters: string[], argv: string[]): boolean {
 	for (let parameterIndex = 0; parameterIndex < parameters.length; parameterIndex++) {
@@ -16,12 +19,31 @@ function parametersMatch(parameters: string[], argv: string[]): boolean {
 	return true;
 }
 
-// TODO: actually implement this
 function createCallbackFunction(functionString: string): AugmentedNotificationCallback {
-	return () => { console.log(functionString); };
+	if (/^\s*open\s+/i.test(functionString)) {
+		return (err: any, res: any, variables: any) => {
+			let openWhat = functionString.match(/^\s*open\s+(.*)$/i)[1];
+			opn(replaceVariables(openWhat, variables));
+		}
+	}
+	if (/^\s*run\s+/i.test(functionString)) {
+		return (err: any, res: any, variables: any) => {
+			let runWhat = functionString.match(/^\s*run\s+(.*)$/i)[1];
+			let runCommand = replaceVariables(runWhat, variables).split(/\s+/);
+			spawn(runCommand[0], [...runCommand.slice(1)], {shell: true});
+		}
+	}
+	if (/^\s*(debug\s+\S|debug\s*)/i.test(functionString)) {
+		return (err: any, res: any, variables: any) => {
+			let debugMatch = functionString.match(/^\s*debug\s+(.*)$/i);
+			if (debugMatch == null) return console.log(err, res, variables);
+			let debugString = replaceVariables(debugMatch[1], variables);
+			console.info(debugString);
+		}
+	}
+	return () => { console.warn(`UNRECOGNIZED COMMAND: ${functionString}`); };
 }
 
-// TODO: add ending watcher that watches for stream end
 function createWatcher(
 	configuration: WatcherConfiguration,
     parameters?: WatcherParameters
@@ -34,11 +56,13 @@ function createWatcher(
 			const regex = new RegExp(regexMatch[1], regexMatch[2]);
 			return new RegexWatcher(
 				regex,
+				actualParameters,
 				createCallbackFunction(actualParameters.onClick),
 				createCallbackFunction(actualParameters.onTimeout)
 			);
 		case 'end-stream':
 			return new EndStreamWatcher(
+				actualParameters,
 				createCallbackFunction(actualParameters.onClick),
 				createCallbackFunction(actualParameters.onTimeout)
 			)
