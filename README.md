@@ -11,13 +11,8 @@ is coming soon.
 ## Installation
 For now:
 - clone the project
-- run `npm install -g`
+- run `yarn install` (or `npm install` if you really have to :laughing:)
 - run `tsc && npm install -g && npm link`
-
-_Note_: will not currently compile. Still waiting for `@types/deep-assign`
-to be published to the npm registry. Until then, one possible solution is
-to just copy the [DefinitelyTyped/deep-assign](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/types-2.0/deep-assign)
-folder from _DefinitelyTyped_ to `node_modules/@types` before running `tsc`.
 
 
 ### Usage
