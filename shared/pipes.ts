@@ -1,8 +1,7 @@
 import { WatcherConfigurationVariables } from '../configuration/interfaces';
-import 'colors';
 import * as moment from 'moment';
 import 'moment-duration-format';
-import * as util from 'util';
+import { log, inspect } from './logger';
 
 interface Pipe {
 	(parameters: string[]): string
@@ -24,7 +23,7 @@ export function pipelineApply(variableString: string, variables: WatcherConfigur
 	for (let stage = 1; stage < pipeline.length; stage++) {
 		value = PIPES[pipeline[stage][0]]([value, ...pipeline[stage].slice(1)]);
 	}
-	console.log('pipeline transform'.bold.blue, variableString, (value||'').bold, util.inspect(variables).grey);
+	log('pipeline transform'.bold.blue, variableString, (value||'').bold, inspect(variables).grey);
 	return value;
 }
 

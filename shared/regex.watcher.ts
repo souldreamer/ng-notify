@@ -4,8 +4,7 @@ import {
 } from '../configuration/interfaces';
 import { replaceVariables } from './pipes';
 import * as deepAssign from 'deep-assign';
-import 'colors';
-import * as util from 'util';
+import { log, inspect } from './logger';
 
 export class RegexWatcher extends NotifyingWatcher {
 	constructor(
@@ -14,15 +13,15 @@ export class RegexWatcher extends NotifyingWatcher {
 	    listeners: WatcherListeners = {}
 	) {
 		super(parameters, listeners);
-		console.log('Creating regex watcher', regex, parameters);
+		log('Creating regex watcher'.green, inspect(regex).cyan, inspect(parameters).grey);
 	}
 	
 	execute(text: string, variables: WatcherConfigurationVariables): void {
 		let matches = text.match(this.regex);
 		if (matches == null) return;
 		
-		console.log('Executing RegexWatcher'.yellow.bold, text, util.inspect(this.regex).yellow, util.inspect(matches).grey.bold);
-		console.log(util.inspect(variables).grey);
+		log('Executing RegexWatcher'.yellow.bold, text, inspect(this.regex).yellow, inspect(matches).grey.bold);
+		log(inspect(variables).grey);
 		this.setMatchVariables(variables, matches);
 		this.setSpecialVariables(variables);
 		this.showNotification(this.replaceStyle(matches), variables);

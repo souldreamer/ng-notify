@@ -7,8 +7,7 @@ import { findConfigurationFile } from './configuration/finder';
 import { parseConfiguration } from './configuration/parser';
 import { Configuration } from './configuration/interfaces';
 import { EndStreamWatcher } from './shared/end-stream.watcher';
-import 'colors';
-import * as util from 'util';
+import { log, inspect } from './shared/logger';
 
 export function main(argv: string[]) {
 	const cliParameterMatch = argv[2].match(/^cli:(.*)$/i);
@@ -20,9 +19,6 @@ export function main(argv: string[]) {
 	const configurationFileContents = fs.readFileSync(configurationFile).toString();
 	const configuration = <Configuration>JSON.parse(configurationFileContents);
 	const { stderr: stderrWatchers, stdout: stdoutWatchers } = parseConfiguration(configuration, cliArguments);
-	
-	console.log(stderrWatchers);
-	console.log(stdoutWatchers);
 	
 	let watcherVariables = {};
 	
@@ -55,12 +51,12 @@ export function main(argv: string[]) {
 	const {data: stdoutDataWatchers, end: stdoutEndWatchers} = splitStreamWatchersByEvent(stdoutWatchers);
 	const {data: stderrDataWatchers, end: stderrEndWatchers} = splitStreamWatchersByEvent(stderrWatchers);
 	
-	console.log('*** STDOUT WATCHERS ***'.red.bold);
-	console.log('DATA:'.bgRed.black.bold, util.inspect(stdoutDataWatchers, false, 10, true));
-	console.log('END:'.bgRed.black.bold, util.inspect(stdoutEndWatchers, false, 10, true));
-	console.log('*** STDERR WATCHERS ***'.red.bold);
-	console.log('DATA:'.bgRed.black.bold, util.inspect(stderrDataWatchers, false, 10, true));
-	console.log('END:'.bgRed.black.bold, util.inspect(stderrEndWatchers, false, 10, true));
+	log('*** STDOUT WATCHERS ***'.red.bold);
+	log('DATA:'.bgRed.black.bold, inspect(stdoutDataWatchers, false, 10, true));
+	log('END:'.bgRed.black.bold, inspect(stdoutEndWatchers, false, 10, true));
+	log('*** STDERR WATCHERS ***'.red.bold);
+	log('DATA:'.bgRed.black.bold, inspect(stderrDataWatchers, false, 10, true));
+	log('END:'.bgRed.black.bold, inspect(stderrEndWatchers, false, 10, true));
 	
 	ngServe.stdout.on('data', block => dealWithBlock(block, stdoutDataWatchers, process.stdout));
 	ngServe.stdout.on('end', block => dealWithBlock(block, stdoutEndWatchers));
@@ -68,7 +64,7 @@ export function main(argv: string[]) {
 	ngServe.stderr.on('end', block => dealWithBlock(block, stderrEndWatchers));
 	process.stdin.on('data', (data: Buffer) => ngServe.stdin.write(data));
 	
-	console.log(`Loading configuration file from: ${configurationFile}`);
+	log(`Loading configuration file from: ${configurationFile}`.bold.black.bgWhite);
 }
 
 main(process.argv);

@@ -3,8 +3,7 @@ import { WatcherParameters, WatcherConfigurationVariables, WatcherListeners } fr
 import * as deepAssign from 'deep-assign';
 import { replaceVariables } from './pipes';
 import { VariableGenerators } from './variables';
-import 'colors';
-import * as util from 'util';
+import { log, inspect } from './logger';
 
 export interface NotificationCallback {
 	(variables: WatcherConfigurationVariables): any;
@@ -31,14 +30,14 @@ export abstract class Watcher {
 	}
 	
 	protected setSpecialVariables(variables: WatcherConfigurationVariables) {
-		console.log('Setting special variables'.blue.bold, this.parameters.variables, util.inspect(variables).grey);
+		log('Setting special variables'.blue.bold, this.parameters.variables, inspect(variables).grey);
 		for (let variable in this.parameters.variables) {
 			let parameterValue = this.parameters.variables[variable].trim();
 			let generator = VariableGenerators[parameterValue];
-			console.log('parameter variable:'.blue, `${variable} = ${parameterValue}`.bold, util.inspect(generator).grey);
+			log('parameter variable:'.blue, `${variable} = ${parameterValue}`.bold, inspect(generator).grey);
 			if (generator != null) {
 				variables[variable] = generator();
-				console.log('new value'.green, `${variable} = ${variables[variable]}`.bold);
+				log('new value'.green, `${variable} = ${variables[variable]}`.bold);
 			}
 		}
 	}
