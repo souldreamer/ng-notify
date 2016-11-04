@@ -4,7 +4,7 @@ import {
 } from '../configuration/interfaces';
 
 export class EndStreamWatcher extends NotifyingWatcher {
-	endStream: true;
+	endStream = true;
 	
 	constructor(
 		parameters: WatcherParameters,
@@ -14,6 +14,7 @@ export class EndStreamWatcher extends NotifyingWatcher {
 	}
 	
 	execute(text: string, variables: WatcherConfigurationVariables): void {
+		console.log('EndStreamWatcher executed');
 		this.setSpecialVariables(variables);
 		this.showNotification(this.parameters, variables);
 		this.listeners.onExecute(variables);
