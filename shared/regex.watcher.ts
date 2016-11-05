@@ -24,8 +24,8 @@ export class RegexWatcher extends NotifyingWatcher {
 		log(inspect(variables).grey);
 		this.setMatchVariables(variables, matches);
 		this.setSpecialVariables(variables);
-		this.showNotification(this.replaceStyle(matches), variables);
-		this.listeners.onExecute(variables);
+		this.showNotification(this.replaceStyle(matches), this.getMatchAugmentedVariables(variables, matches));
+		if (this.listeners.onExecute != null) this.listeners.onExecute(variables);
 	}
 	
 	private replaceStyle(matches: RegExpMatchArray): any {
@@ -47,11 +47,20 @@ export class RegexWatcher extends NotifyingWatcher {
 	}
 	
 	protected setMatchVariables(variables: WatcherConfigurationVariables, matches: RegExpMatchArray) {
+		if (this.parameters.variables == null) return;
+		
 		for (let variable in this.parameters.variables) {
 			variables[variable] = replaceVariables(
 				this.parameters.variables[variable].replace(/\$(\d+)/gi, (match, num) => `\${${num}}`),
-				deepAssign({}, variables, RegexWatcher.regexMatchToWatcherVariables(matches))
+				this.getMatchAugmentedVariables(variables, matches)
 			);
 		}
+	}
+	
+	protected getMatchAugmentedVariables(
+		variables: WatcherConfigurationVariables,
+		matches: RegExpMatchArray
+	): WatcherConfigurationVariables {
+		return deepAssign({}, variables, RegexWatcher.regexMatchToWatcherVariables(matches));
 	}
 }

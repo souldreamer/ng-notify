@@ -7,3 +7,4 @@ const silentLog = (message?: any, ...optionalParams: any[]): void => {};
 
 export const inspect = util.inspect;
 export const log = envVars.indexOf('verbose') === -1 ? silentLog : verboseLog;
+export const error = console.error.bind(console);

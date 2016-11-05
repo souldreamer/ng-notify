@@ -1,12 +1,11 @@
 import { NodeNotifier, Notification, notify } from 'node-notifier';
 import { WatcherParameters, WatcherConfigurationVariables, WatcherListeners } from '../configuration/interfaces';
-import * as deepAssign from 'deep-assign';
 import { replaceVariables } from './pipes';
 import { VariableGenerators } from './variables';
 import { log, inspect } from './logger';
 
 export interface NotificationCallback {
-	(variables: WatcherConfigurationVariables): any;
+	(variables: WatcherConfigurationVariables): any | void;
 }
 
 interface StringIndexedObject {
@@ -21,15 +20,14 @@ export abstract class Watcher {
 		if (this.listeners.onExecute == null) this.listeners.onExecute = () => {};
 		if (this.listeners.onTimeout == null) this.listeners.onTimeout = () => {};
 		if (this.listeners.onClick == null) this.listeners.onClick = () => {};
+		if (this.parameters.variables == null) this.parameters.variables = {};
 	}
 	
 	execute(text: string, variables: WatcherConfigurationVariables): void {}
 	
-	protected static extendStyle(baseStyle: any, extendedStyle: any): any {
-		return deepAssign({}, baseStyle, extendedStyle);
-	}
-	
 	protected setSpecialVariables(variables: WatcherConfigurationVariables) {
+		if (this.parameters.variables == null) return;
+		
 		log('Setting special variables'.blue.bold, this.parameters.variables, inspect(variables).grey);
 		for (let variable in this.parameters.variables) {
 			let parameterValue = this.parameters.variables[variable].trim();
@@ -62,10 +60,10 @@ export abstract class NotifyingWatcher extends Watcher {
 		return notify(notificationStyle, (err: any, res: string) => {
 			switch (res) {
 				case 'activate':
-					this.listeners.onClick(variables);
+					if (this.listeners.onClick != null) this.listeners.onClick(variables);
 					break;
 				case 'timeout':
-					this.listeners.onTimeout(variables);
+					if (this.listeners.onTimeout != null) this.listeners.onTimeout(variables);
 					break;
 			}
 		});

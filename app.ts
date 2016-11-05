@@ -7,44 +7,58 @@ import { findConfigurationFile } from './configuration/finder';
 import { parseConfiguration } from './configuration/parser';
 import { Configuration } from './configuration/interfaces';
 import { EndStreamWatcher } from './shared/end-stream.watcher';
-import { log, inspect } from './shared/logger';
+import { log, inspect, error } from './shared/logger';
+import { ChildProcess } from 'child_process';
 
-export function main(argv: string[]) {
+function fatalError(message: string, err?: Error): void {
+	error(message.bold.white.bgRed);
+	if (err != null) error(err.message.red);
+	process.exit(1);
+}
+
+function getConfiguration(filename: string): Configuration {
+	const configurationFile = findConfigurationFile(filename);
+	if (configurationFile == null) fatalError('Could not find configuration file');
+	log(`Loading configuration file from: ${configurationFile}`.bold.black.bgWhite);
+	
+	try {
+		const configurationFileContents = fs.readFileSync(<string>configurationFile).toString();
+		return <Configuration>JSON.parse(configurationFileContents);
+	} catch (err) {
+		fatalError('Could not read or parse configuration file', err);
+		return <Configuration>require('./noti-cli.ng.json');
+	}
+}
+
+function parseArguments(argv: string[]): {configurationFilename: string, cliArguments: string[]} {
 	const cliParameterMatch = argv[2].match(/^cli:(.*)$/i);
 	const cliName = cliParameterMatch == null ? '' : cliParameterMatch[1];
 	const configurationFilename = cliParameterMatch == null ? 'noti-cli.json' : `noti-cli.${cliName}.json`;
 	const cliArguments = argv.slice(cliParameterMatch == null ? 2 : 3);
+	return {configurationFilename, cliArguments};
+}
+
+const watcherVariables = {};
+function processBlock(block: Buffer | string, watchers: Watcher[], stream?: WritableStream) {
+	if (stream != null && block != null) stream.write(block);
 	
-	const configurationFile = findConfigurationFile(configurationFilename);
-	const configurationFileContents = fs.readFileSync(configurationFile).toString();
-	const configuration = <Configuration>JSON.parse(configurationFileContents);
-	const { stderr: stderrWatchers, stdout: stdoutWatchers } = parseConfiguration(configuration, cliArguments);
-	
-	let watcherVariables = {};
-	
-	function dealWithBlock(block: Buffer | string, watchers: Watcher[], stream?: WritableStream) {
-		if (stream != null && block != null) stream.write(block);
-		
-		let text = block == null ? '' : block.toString();
-		watchers.forEach(watcher => watcher.execute(text, watcherVariables));
+	const text = block == null ? '' : block.toString();
+	watchers.forEach(watcher => watcher.execute(text, watcherVariables));
+}
+
+function splitStreamWatchersByEvent(watchers: Watcher[]): {data: Watcher[], end: Watcher[]} {
+	return {
+		data: watchers.filter(watcher => (<EndStreamWatcher>watcher).endStream !== true),
+		end:  watchers.filter(watcher => (<EndStreamWatcher>watcher).endStream === true)
 	}
-	
-	function splitStreamWatchersByEvent(watchers: Watcher[]): {data: Watcher[], end: Watcher[]} {
-		return {
-			data: watchers.filter(watcher => (<EndStreamWatcher>watcher).endStream !== true),
-			end:  watchers.filter(watcher => (<EndStreamWatcher>watcher).endStream === true)
-		}
-	}
-	
-	let ngServe = configuration.cli == null || configuration.cli.trim().length === 0 ?
-	              spawn(cliArguments[0], [...cliArguments.slice(1)]) :
-	              spawn(configuration.cli, [...cliArguments], { shell: true });
-	
-	ngServe.on('error', (err: any) => {
+}
+
+function wireWatchersToChildProcess(childProcess: ChildProcess, stdoutWatchers: Watcher[], stderrWatchers: Watcher[]) {
+	childProcess.on('error', (err: any) => {
 		console.error(err);
 	});
 	
-	ngServe.on('close', () => {
+	childProcess.on('close', () => {
 		process.exit(0);
 	});
 	
@@ -58,13 +72,28 @@ export function main(argv: string[]) {
 	log('DATA:'.bgRed.black.bold, inspect(stderrDataWatchers, false, 10, true));
 	log('END:'.bgRed.black.bold, inspect(stderrEndWatchers, false, 10, true));
 	
-	ngServe.stdout.on('data', block => dealWithBlock(block, stdoutDataWatchers, process.stdout));
-	ngServe.stdout.on('end', block => dealWithBlock(block, stdoutEndWatchers));
-	ngServe.stderr.on('data', block => dealWithBlock(block, stderrDataWatchers, process.stderr));
-	ngServe.stderr.on('end', block => dealWithBlock(block, stderrEndWatchers));
-	process.stdin.on('data', (data: Buffer) => ngServe.stdin.write(data));
+	childProcess.stdout.on('data', block => processBlock(block, stdoutDataWatchers, process.stdout));
+	childProcess.stdout.on('end', block => processBlock(block, stdoutEndWatchers));
+	childProcess.stderr.on('data', block => processBlock(block, stderrDataWatchers, process.stderr));
+	childProcess.stderr.on('end', block => processBlock(block, stderrEndWatchers));
+	process.stdin.on('data', (data: Buffer) => childProcess.stdin.write(data));
+}
+
+export function main(argv: string[]) {
+	const {configurationFilename, cliArguments} = parseArguments(argv);
+	const configuration = getConfiguration(configurationFilename);
+	const {stderr: stderrWatchers, stdout: stdoutWatchers} = parseConfiguration(configuration, cliArguments);
 	
-	log(`Loading configuration file from: ${configurationFile}`.bold.black.bgWhite);
+	let cli: ChildProcess | null = null;
+	try {
+		cli = configuration.cli == null || configuration.cli.trim().length === 0 ?
+		      spawn(cliArguments[0], [...cliArguments.slice(1)]) :
+		      spawn(configuration.cli, [...cliArguments], { shell: true });
+	} catch (err) {
+		fatalError('Could not create CLI process', err);
+	}
+	
+	if (cli != null) wireWatchersToChildProcess(cli, stdoutWatchers, stderrWatchers)
 }
 
 main(process.argv);

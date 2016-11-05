@@ -18,6 +18,6 @@ export class EndStreamWatcher extends NotifyingWatcher {
 		log('EndStreamWatcher executed'.bold.magenta, inspect(variables).grey);
 		this.setSpecialVariables(variables);
 		this.showNotification(this.parameters, variables);
-		this.listeners.onExecute(variables);
+		if (this.listeners.onExecute != null) this.listeners.onExecute(variables);
 	}
 }

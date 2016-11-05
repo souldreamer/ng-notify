@@ -13,7 +13,7 @@ function findFileInDirectory(directory: string, filename: string): string {
 	return files[0];
 }
 
-export function findConfigurationFile(filename: string): string {
+export function findConfigurationFile(filename: string): string | null {
 	let currentDirectory = process.cwd();
 	let lastCheckedDirectory = '';
 	
@@ -28,5 +28,5 @@ export function findConfigurationFile(filename: string): string {
 	let defaultConfigurationFile = findFileInDirectory(packageDirectory, filename);
 	if (defaultConfigurationFile != null) return defaultConfigurationFile;
 	
-	return void 0;
+	return null;
 }
