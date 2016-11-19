@@ -5,11 +5,9 @@ import {
 import { log, inspect } from './logger';
 
 export class EndStreamWatcher extends NotifyingWatcher {
-	endStream = true;
-	
 	constructor(
 		parameters: WatcherParameters,
-	    listeners: WatcherListeners = {}
+		listeners: WatcherListeners = {}
 	) {
 		super(parameters, listeners);
 	}

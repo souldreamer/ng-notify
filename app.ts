@@ -48,9 +48,9 @@ function processBlock(block: Buffer | string, watchers: Watcher[], stream?: Writ
 
 function splitStreamWatchersByEvent(watchers: Watcher[]): {data: Watcher[], end: Watcher[]} {
 	return {
-		data: watchers.filter(watcher => (<EndStreamWatcher>watcher).endStream !== true),
-		end:  watchers.filter(watcher => (<EndStreamWatcher>watcher).endStream === true)
-	}
+		data: watchers.filter(watcher => !(watcher instanceof EndStreamWatcher)),
+		end:  watchers.filter(watcher => watcher instanceof EndStreamWatcher)
+	};
 }
 
 function wireWatchersToChildProcess(childProcess: ChildProcess, stdoutWatchers: Watcher[], stderrWatchers: Watcher[]) {
@@ -73,9 +73,9 @@ function wireWatchersToChildProcess(childProcess: ChildProcess, stdoutWatchers: 
 	log('END:'.bgRed.black.bold, inspect(stderrEndWatchers, false, 10, true));
 	
 	childProcess.stdout.on('data', block => processBlock(block, stdoutDataWatchers, process.stdout));
-	childProcess.stdout.on('end', block => processBlock(block, stdoutEndWatchers));
+	childProcess.stdout.on('end', () => processBlock('', stdoutEndWatchers));
 	childProcess.stderr.on('data', block => processBlock(block, stderrDataWatchers, process.stderr));
-	childProcess.stderr.on('end', block => processBlock(block, stderrEndWatchers));
+	childProcess.stderr.on('end', () => processBlock('', stderrEndWatchers));
 	process.stdin.on('data', (data: Buffer) => childProcess.stdin.write(data));
 }
 
@@ -86,14 +86,15 @@ export function main(argv: string[]) {
 	
 	let cli: ChildProcess | null = null;
 	try {
-		cli = configuration.cli == null || configuration.cli.trim().length === 0 ?
-		      spawn(cliArguments[0], [...cliArguments.slice(1)]) :
-		      spawn(configuration.cli, [...cliArguments], { shell: true });
+		cli =
+			configuration.cli == null || configuration.cli.trim().length === 0 ?
+			spawn(cliArguments[0], [...cliArguments.slice(1)]) :
+			spawn(configuration.cli, [...cliArguments], { shell: true });
 	} catch (err) {
 		fatalError('Could not create CLI process', err);
 	}
 	
-	if (cli != null) wireWatchersToChildProcess(cli, stdoutWatchers, stderrWatchers)
+	if (cli != null) wireWatchersToChildProcess(cli, stdoutWatchers, stderrWatchers);
 }
 
 main(process.argv);
