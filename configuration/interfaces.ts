@@ -23,8 +23,13 @@ export interface CliWatchers {
 	stdout?: (string | WatcherConfiguration)[];
 }
 
-export interface CliCommand {
+export interface CliCommandAlias {
 	cliParameters: string[];
+}
+
+export interface CliCommand {
+	cliParameters?: string[];
+	aliases?: CliCommandAlias[];
 	watchers: CliWatchers;
 }
 
@@ -35,7 +40,7 @@ export interface WatcherConfigurationVariables {
 export interface WatcherConfiguration {
 	name: string;
 	type: string;
-	parameters: WatcherParameters
+	parameters: WatcherParameters;
 }
 
 export interface Configuration {

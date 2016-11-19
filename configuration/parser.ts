@@ -48,7 +48,7 @@ export function parseConfiguration(configuration: Configuration, argv: string[])
 	let globalWatchers: WatcherConfigurationMap = getWatcherConfigurationMap(configuration);
 	
 	configuration.cliCommands.forEach(command => {
-		if (!parametersMatch(command.cliParameters, argv)) return;
+		if (command.cliParameters != null && !parametersMatch(command.cliParameters, argv)) return;
 		
 		stderrWatchers.push(...getWatchers(command.watchers.stderr || [], globalWatchers));
 		stdoutWatchers.push(...getWatchers(command.watchers.stdout || [], globalWatchers));
