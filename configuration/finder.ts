@@ -1,16 +1,11 @@
-import { sync as globSync } from 'glob';
 import * as path from 'path';
 import * as process from 'process';
+import * as fs from 'fs';
 
-function findFileInDirectory(directory: string, filename: string): string {
-	let files = globSync(
-		path.join(directory, filename),
-		{
-			nodir: true,
-			silent: true
-		}
-	);
-	return files[0];
+function findFileInDirectory(directory: string, filename: string): string | null {
+	let possibleFileInDirectory = path.join(directory, filename);
+	if (fs.existsSync(possibleFileInDirectory)) return possibleFileInDirectory;
+	return null;
 }
 
 export function findConfigurationFile(filename: string): string | null {
