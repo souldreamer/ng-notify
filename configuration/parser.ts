@@ -4,7 +4,9 @@ import {
 } from './interfaces';
 import { createWatcher } from '../shared/watcher.factory';
 
-function parametersMatch(parameters: string[], argv: string[]): boolean {
+function parametersMatch(parameters: string[] | undefined, argv: string[]): boolean {
+	if (parameters == null) return true;
+
 	for (let parameterIndex = 0; parameterIndex < parameters.length; parameterIndex++) {
 		const parameter = parameters[parameterIndex].trim();
 		if (parameter === '') continue;
@@ -48,7 +50,10 @@ export function parseConfiguration(configuration: Configuration, argv: string[])
 	let globalWatchers: WatcherConfigurationMap = getWatcherConfigurationMap(configuration);
 	
 	configuration.cliCommands.forEach(command => {
-		if (command.cliParameters != null && !parametersMatch(command.cliParameters, argv)) return;
+		if (![
+			command.cliParameters,
+			...(command.aliases != null ? command.aliases.map(alias => alias.cliParameters) : [])
+		].some(cliParameters => parametersMatch(cliParameters, argv))) return;
 		
 		stderrWatchers.push(...getWatchers(command.watchers.stderr || [], globalWatchers));
 		stdoutWatchers.push(...getWatchers(command.watchers.stdout || [], globalWatchers));
