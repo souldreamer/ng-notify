@@ -10,7 +10,7 @@ export class RegexWatcher extends NotifyingWatcher {
 	constructor(
 		protected regex: RegExp,
 		parameters: WatcherParameters,
-	    listeners: WatcherListeners = {}
+		listeners: WatcherListeners = {}
 	) {
 		super(parameters, listeners);
 		log('Creating regex watcher'.green, inspect(regex).cyan, inspect(parameters).grey);
@@ -24,7 +24,7 @@ export class RegexWatcher extends NotifyingWatcher {
 		log(inspect(variables).grey);
 		this.setMatchVariables(variables, matches);
 		this.setSpecialVariables(variables);
-		this.showNotification(this.replaceStyle(matches), this.getMatchAugmentedVariables(variables, matches));
+		this.showNotification(this.replaceStyle(matches), RegexWatcher.getMatchAugmentedVariables(variables, matches));
 		if (this.listeners.onExecute != null) this.listeners.onExecute(variables);
 	}
 	
@@ -38,7 +38,7 @@ export class RegexWatcher extends NotifyingWatcher {
 		return computedStyle;
 	}
 	
-	static regexMatchToWatcherVariables(matches: RegExpMatchArray): WatcherConfigurationVariables {
+	protected static regexMatchToWatcherVariables(matches: RegExpMatchArray): WatcherConfigurationVariables {
 		let variables: WatcherConfigurationVariables = {};
 		for (let index = 0; index < matches.length; index++) {
 			variables[index.toString()] = matches[index];
@@ -52,12 +52,12 @@ export class RegexWatcher extends NotifyingWatcher {
 		for (let variable in this.parameters.variables) {
 			variables[variable] = replaceVariables(
 				this.parameters.variables[variable].replace(/\$(\d+)/gi, (match, num) => `\${${num}}`),
-				this.getMatchAugmentedVariables(variables, matches)
+				RegexWatcher.getMatchAugmentedVariables(variables, matches)
 			);
 		}
 	}
 	
-	protected getMatchAugmentedVariables(
+	protected static getMatchAugmentedVariables(
 		variables: WatcherConfigurationVariables,
 		matches: RegExpMatchArray
 	): WatcherConfigurationVariables {

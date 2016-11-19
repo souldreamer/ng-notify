@@ -6,12 +6,12 @@ import * as deepAssign from 'deep-assign';
 import { createCallbackFunction } from './callbacks';
 
 interface WatcherFactory {
-	(configuration: WatcherConfiguration, parameters: WatcherParameters): Watcher
+	(configuration: WatcherConfiguration, parameters: WatcherParameters): Watcher;
 }
 
 interface WatcherTypeFactory {
 	type: string;
-	factory: WatcherFactory
+	factory: WatcherFactory;
 }
 
 const RegexWatcherFactory: WatcherTypeFactory = {
@@ -35,7 +35,7 @@ const EndStreamWatcherFactory: WatcherTypeFactory = {
 
 const WatcherTypeFactories = [
 	RegexWatcherFactory,
-    EndStreamWatcherFactory
+	EndStreamWatcherFactory
 ];
 
 export function createWatcher(

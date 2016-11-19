@@ -1,12 +1,12 @@
 interface VariableGeneratorFunction {
-	(): string
+	(): string;
 }
 
-interface VariableGeneratorsDictionary {
-	[variableName: string]: VariableGeneratorFunction
-}
+export const VariableGenerators: {[variableName: string]: VariableGeneratorFunction} = {
+	'now': currentDate,
+	'Date.now': currentDate
+};
 
-export const VariableGenerators: VariableGeneratorsDictionary = {
-	'now': () => (new Date()).toISOString(),
-	'Date.now': () => (new Date()).toISOString()
+function currentDate() {
+	return (new Date()).toISOString();
 }

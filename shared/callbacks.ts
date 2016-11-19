@@ -7,17 +7,17 @@ import { WatcherConfigurationVariables } from '../configuration/interfaces';
 import { log, inspect } from './logger';
 
 interface CallbackGenerator {
-	(parameters: string, event?: string): NotificationCallback
+	(parameters: string, event?: string): NotificationCallback;
 }
 
 interface CallbackGeneratorRule {
-	rule: RegExp | string,
-	terminal?: boolean,
-	generator: CallbackGenerator
+	rule: RegExp | string;
+	terminal?: boolean;
+	generator: CallbackGenerator;
 }
 
 const open = {
-	rule: "open",
+	rule: 'open',
 	generator: (parameters: string, event: string = '') => (variables: WatcherConfigurationVariables) => {
 		log(event.black.bgYellow.bold, 'Open'.yellow.bold, replaceVariables(parameters, variables).yellow);
 		opn(replaceVariables(parameters, variables));
@@ -25,7 +25,7 @@ const open = {
 };
 
 const run = {
-	rule: "run",
+	rule: 'run',
 	generator: (parameters: string, event: string = '') => (variables: WatcherConfigurationVariables) => {
 		log(event.black.bgYellow.bold, 'Run'.yellow.bold, replaceVariables(parameters, variables).yellow);
 		let runCommand = replaceVariables(parameters, variables).split(/\s+/);
@@ -34,7 +34,7 @@ const run = {
 };
 
 const debugTerminal = {
-	rule: "debug",
+	rule: 'debug',
 	terminal: true,
 	generator: (parameters: string, event: string = '') => (variables: WatcherConfigurationVariables) => {
 		log(event.black.bgYellow.bold, inspect(variables).blue);
@@ -42,7 +42,7 @@ const debugTerminal = {
 };
 
 const debug = {
-	rule: "debug",
+	rule: 'debug',
 	generator: (parameters: string, event: string = '') => (variables: WatcherConfigurationVariables) => {
 		let debugString = replaceVariables(parameters, variables);
 		log(event.black.bgYellow.bold, debugString.blue);
@@ -57,9 +57,11 @@ function getGeneratorRuleRegExp({
 	rule = /^$/,
 	terminal = false
 }: {rule?: string | RegExp, terminal?: boolean} = {}): RegExp {
-	return typeof rule === 'string' ?
-	       new RegExp(`^\\s*${rule}\\s${terminal ? '*$' : '+'}`, 'i') :
-	       <RegExp>rule;
+	return (
+		typeof rule === 'string' ?
+		new RegExp(`^\\s*${rule}\\s${terminal ? '*$' : '+'}`, 'i') :
+		<RegExp>rule
+	);
 }
 
 function testGeneratorRule(functionString: string, generatorRule: CallbackGeneratorRule): boolean {

@@ -15,7 +15,7 @@ interface StringIndexedObject {
 export abstract class Watcher {
 	constructor(
 		protected parameters: WatcherParameters,
-	    protected listeners: WatcherListeners
+		protected listeners: WatcherListeners
 	) {
 		if (this.listeners.onExecute == null) this.listeners.onExecute = () => {};
 		if (this.listeners.onTimeout == null) this.listeners.onTimeout = () => {};
@@ -54,7 +54,7 @@ export abstract class NotifyingWatcher extends Watcher {
 		variables: WatcherConfigurationVariables
 	): NodeNotifier {
 		const notificationStyle: Notification = notification || <any>this.parameters;
-		this.replaceNotificationVariables(notificationStyle, variables);
+		NotifyingWatcher.replaceNotificationVariables(notificationStyle, variables);
 		notificationStyle.wait = true;
 		
 		return notify(notificationStyle, (err: any, res: string) => {
@@ -69,7 +69,7 @@ export abstract class NotifyingWatcher extends Watcher {
 		});
 	}
 	
-	protected replaceNotificationVariables(
+	protected static replaceNotificationVariables(
 		notification: Notification,
 		variables: WatcherConfigurationVariables
 	): void {
