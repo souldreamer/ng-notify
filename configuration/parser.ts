@@ -1,3 +1,4 @@
+import { inspect, log } from '../shared/logger';
 import { Watcher } from '../shared/watchers';
 import {
 	WatcherConfiguration, WatcherConfigurationMap, Configuration, StreamWatchers
@@ -26,9 +27,12 @@ function getWatchers(
 		const name = isString ? <string>watcher : (<WatcherConfiguration>watcher).name;
 		const parameters = isString ? undefined : (<WatcherConfiguration>watcher).parameters;
 		
-		const globalWatcher = globalWatchers.get(name);
-		if (globalWatcher == null) return null;
-		
+		let globalWatcher = globalWatchers.get(name);
+		if (globalWatcher == null) {
+			if (typeof watcher === 'string' || !watcher.type) return null;
+			globalWatcher = { name: '', type: watcher.type, parameters: watcher.parameters || {}};
+		}
+
 		const watcherInstance = createWatcher(globalWatcher, parameters);
 		if (watcherInstance != null) watchers.push(watcherInstance);
 	});
@@ -50,15 +54,17 @@ export function parseConfiguration(configuration: Configuration, argv: string[])
 	let globalWatchers: WatcherConfigurationMap = getWatcherConfigurationMap(configuration);
 	
 	configuration.cliCommands.forEach(command => {
+		log('parseConfiguration: considering command: '.yellow, inspect(command, false, 10, true));
 		if (![
 			command.cliParameters,
 			...(command.aliases != null ? command.aliases.map(alias => alias.cliParameters) : [])
 		].some(cliParameters => parametersMatch(cliParameters, argv))) return;
+		log('configuration applies'.black.bgYellow);
 		
 		stderrWatchers.push(...getWatchers(command.watchers.stderr || [], globalWatchers));
 		stdoutWatchers.push(...getWatchers(command.watchers.stdout || [], globalWatchers));
 	});
-	
+
 	return {
 		stderr: stderrWatchers,
 		stdout: stdoutWatchers
