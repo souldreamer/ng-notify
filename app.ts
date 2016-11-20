@@ -5,7 +5,7 @@ import { spawn } from 'child_process';
 import { Watcher } from './shared/watchers';
 import { findConfigurationFile } from './configuration/finder';
 import { parseConfiguration } from './configuration/parser';
-import { Configuration } from './configuration/interfaces';
+import { Configuration, WatcherConfigurationVariables } from './configuration/interfaces';
 import { EndStreamWatcher } from './shared/end-stream.watcher';
 import { log, inspect, error } from './shared/logger';
 import { ChildProcess } from 'child_process';
@@ -38,7 +38,14 @@ function parseArguments(argv: string[]): {configurationFilename: string, cliArgu
 	return {configurationFilename, cliArguments};
 }
 
-const watcherVariables = {};
+const watcherVariables: WatcherConfigurationVariables = {};
+
+function setArgvVariables(argv: string[]): void {
+	argv.forEach((arg, index) => {
+		watcherVariables[`cliParam[${index}]`] = arg;
+	});
+}
+
 function processBlock(block: Buffer | string, watchers: Watcher[], stream?: WritableStream) {
 	if (stream != null && block != null) stream.write(block);
 	
@@ -86,6 +93,11 @@ export function main(argv: string[]) {
 	
 	let cli: ChildProcess | null = null;
 	try {
+		setArgvVariables(
+			configuration.cli == null || configuration.cli.trim().length === 0 ?
+			cliArguments :
+			[configuration.cli, ...cliArguments]
+		);
 		cli =
 			configuration.cli == null || configuration.cli.trim().length === 0 ?
 			spawn(cliArguments[0], [...cliArguments.slice(1)]) :

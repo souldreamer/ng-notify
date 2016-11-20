@@ -21,6 +21,10 @@
   version "2.5.35"
   resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.5.35.tgz#5566406dc8417d380d6c2f9562ec3c71ec28ef78"
 
+"@types/lodash@^4.14.39":
+  version "4.14.39"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.39.tgz#99e2180351609e4466abde8952d153a63a03eb14"
+
 "@types/minimatch@*":
   version "2.0.29"
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-2.0.29.tgz#5002e14f75e2d71e564281df0431c8c1b4a2a36a"
@@ -2046,9 +2050,9 @@ lodash.keys@^3.0.0:
     lodash.isarguments "^3.0.0"
     lodash.isarray "^3.0.0"
 
-lodash@^4.2.0:
-  version "4.16.6"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.16.6.tgz#d22c9ac660288f3843e16ba7d2b5d06cca27d777"
+lodash@^4.17.2, lodash@^4.2.0:
+  version "4.17.2"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.2.tgz#34a3055babe04ce42467b607d700072c7ff6bf42"
 
 longest@^1.0.1:
   version "1.0.1"
