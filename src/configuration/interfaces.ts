@@ -38,9 +38,9 @@ export interface WatcherConfigurationVariables {
 }
 
 export interface WatcherConfiguration {
-	name: string;
-	type: string;
-	parameters: WatcherParameters;
+	name?: string;
+	type?: 'end-stream' | 'regex';
+	parameters?: WatcherParameters;
 }
 
 export interface Configuration {

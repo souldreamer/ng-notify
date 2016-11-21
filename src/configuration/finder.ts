@@ -19,7 +19,7 @@ export function findConfigurationFile(filename: string): string | null {
 		currentDirectory = path.join(currentDirectory, '..');
 	}
 	
-	let packageDirectory = path.join(__dirname, '..');
+	let packageDirectory = path.join(__dirname, '../..');
 	let defaultConfigurationFile = findFileInDirectory(packageDirectory, filename);
 	if (defaultConfigurationFile != null) return defaultConfigurationFile;
 	

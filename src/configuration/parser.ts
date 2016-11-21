@@ -27,7 +27,7 @@ function getWatchers(
 		const name = isString ? <string>watcher : (<WatcherConfiguration>watcher).name;
 		const parameters = isString ? undefined : (<WatcherConfiguration>watcher).parameters;
 		
-		let globalWatcher = globalWatchers.get(name);
+		let globalWatcher = name == null ? null : globalWatchers.get(name);
 		if (globalWatcher == null) {
 			if (typeof watcher === 'string' || !watcher.type) return null;
 			globalWatcher = { name: '', type: watcher.type, parameters: watcher.parameters || {}};
@@ -43,6 +43,8 @@ function getWatcherConfigurationMap(configuration: Configuration): WatcherConfig
 	let watcherConfigurationMap: WatcherConfigurationMap = new Map();
 	
 	(configuration.watchers || <WatcherConfiguration[]>[]).forEach(watcher => {
+		if (watcher.name == null) return;
+		
 		watcherConfigurationMap.set(watcher.name, watcher);
 	});
 	return watcherConfigurationMap;
@@ -53,6 +55,8 @@ export function parseConfiguration(configuration: Configuration, argv: string[])
 	let stdoutWatchers: Watcher[] = [];
 	let globalWatchers: WatcherConfigurationMap = getWatcherConfigurationMap(configuration);
 	
+	if (!configuration || !configuration.cliCommands) return {stderr: [], stdout: []};
+
 	configuration.cliCommands.forEach(command => {
 		log('parseConfiguration: considering command: '.yellow, inspect(command, false, 10, true));
 		if (![
