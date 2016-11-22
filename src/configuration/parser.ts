@@ -5,13 +5,43 @@ import {
 } from './interfaces';
 import { createWatcher } from '../shared/watcher.factory';
 
-function parametersMatch(parameters: string[] | undefined, argv: string[]): boolean {
+function isSkipMany(parameter: string): boolean {
+	return parameter.trim() === '*';
+}
+function isSkipOne(parameter: string): boolean {
+	return parameter.trim() === '?';
+}
+function isSkipAny(parameter: string): boolean {
+	return isSkipOne(parameter) || isSkipMany(parameter);
+}
+
+export function parametersMatch(parameters: string[] | undefined, argv: string[]): boolean {
 	if (parameters == null) return true;
 
-	for (let parameterIndex = 0; parameterIndex < parameters.length; parameterIndex++) {
-		const parameter = parameters[parameterIndex].trim();
-		if (parameter === '') continue;
-		if (parameter !== argv[parameterIndex]) return false;
+	let argvIndex = 0;
+	for (let parameterIndex = 0; parameterIndex < parameters.length; parameterIndex++, argvIndex++) {
+		if (parameterIndex >= argv.length || argvIndex >= argv.length) {
+			return parameters.slice(parameterIndex).every(isSkipMany);
+		}
+
+		let parameter = parameters[parameterIndex].trim();
+		if (isSkipMany(parameter)) {
+			let numSkipOne = 0;
+			while (parameterIndex < parameters.length && isSkipAny(parameters[parameterIndex])) {
+				if (isSkipOne(parameters[parameterIndex])) numSkipOne++;
+				parameterIndex++;
+			}
+			if (parameterIndex === parameters.length) return true;
+
+			parameter = parameters[parameterIndex].trim();
+			argvIndex += numSkipOne;
+			while (argvIndex < argv.length && argv[argvIndex] !== parameter) argvIndex++;
+			if (argvIndex >= argv.length) return false;
+
+			continue;
+		}
+		if (isSkipOne(parameter)) continue;
+		if (parameter !== argv[argvIndex]) return false;
 	}
 	return true;
 }
